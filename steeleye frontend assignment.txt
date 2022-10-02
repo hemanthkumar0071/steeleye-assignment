@@ -1,0 +1,125 @@
+1) Explain what the simple List component does.
+ans:
+list component allows us to dispaly a list of pages or links.we can build the list of links by defining a parent page, manually choosing pages , or defining search criteria.
+we use list if we want our data to be displayed in a ordered format.
+In the given code list component consists of:
+-list items wrapped in WrappedSingleListItem having state isSelected and values as text and index,and event named onclickhandler.
+-it also uses map() method to call a funtion for each element in that array
+- the text color changes to green if the state is true and red to non selected items (false condition)
+
+
+2) What problems / warnings are there with code?
+ans:
+following are the problems/warnings are in the code--
+->Function shapeOf and array error, as they are not functions
+   It was initially declared as:
+
+    WrappedListComponent.propTypes = {
+    items: PropTypes.array(PropTypes.shapeOf({   		//shape and arrayOf
+         text: PropTypes.string.isRequired,
+ })),
+ };
+
+instead of shapeOf and array we have to use shape and arrayOf respectively.
+
+-> Error: Cannot read properties of null (reading 'map'),
+Error in statement:
+WrappedListComponent.defaultProps = { items: null, };
+
+As map() method was called and by default we have declared it as null due to that it is throwing an error. Thus to remove this error initialise the array items with some default values.
+
+Resolved:
+WrappedListComponent.defaultProps = { items: [{text: "apple", index:1}, {text: "mango", index:2}, {text: "guava", index:3}], };
+
+->Error in declaring selectedIndex, it was throwing an error of React Hook useEffect has a missing dependency: 'setSelectedIndex'
+Error in statement:
+const [setSelectedIndex, selectedIndex] = useState();
+
+Resolved:
+const [selectedIndex, setSelectedIndex] = useState('');
+
+We have to first declare selectedIndex and then setSelectedIndex.
+
+->Error: Invalid prop isSelected of type string supplied to WrappedSingleListItem, expected boolean.
+We have initialised propType of isSelected as bool but we are declaring it with a string value due to which it is throwing an error.
+Error in statement: const handleClick = index => { setSelectedIndex(index); };
+
+Resolved:
+
+const handleClick = index => { setSelectedIndex(true); };
+
+Question-3: Please fix, optimize, and/or modify the component as much as you think is necessary.
+ans:
+
+import React, { useState, useEffect, memo } from 'react';
+import PropTypes from 'prop-types';
+
+// Single List Item
+const WrappedSingleListItem = ({
+  index,
+  isSelected,
+  onClickHandler,
+  text,
+}) => {
+  return (
+    <li
+      style={{ backgroundColor: isSelected ? 'green' : 'red'}}
+      onClick={onClickHandler(index)}
+    >
+      {text}
+    </li>
+  );
+};
+
+WrappedSingleListItem.propTypes = {
+  index: PropTypes.number,
+  isSelected: PropTypes.bool,
+  onClickHandler: PropTypes.func.isRequired,
+  text: PropTypes.string.isRequired,
+};
+
+const SingleListItem = memo(WrappedSingleListItem);
+
+// List Component
+const WrappedListComponent = ({
+  items,
+}) => {
+    const [selectedIndex, setSelectedIndex] = useState('');  /*Error resolved*/
+
+  useEffect(() => {
+    setSelectedIndex(null);
+  }, [items]);
+
+  const handleClick = index => {
+    setSelectedIndex(true);  /*Error resolved*/
+  };
+
+  return (
+    <ul style={{ textAlign: 'left' }}>
+      {items.map((item, index) => (
+        <SingleListItem
+          onClickHandler={() => handleClick(index)}
+          text={item.text}
+          index={index}
+          isSelected={selectedIndex}
+        />
+      ))}
+    </ul>
+  )
+};
+
+WrappedListComponent.propTypes = {
+  items: PropTypes.arrayOf(PropTypes.shape({         /*Error resolved*/
+    text: PropTypes.string.isRequired,
+  })),
+};
+
+WrappedListComponent.defaultProps = {
+    items: [{text: "apple", index:1}, {text: "mango", index:2}, {text: "guava", index:3}],   /*Error resolved*/
+  };
+
+const List = memo(WrappedListComponent);
+
+
+export default List;
+
